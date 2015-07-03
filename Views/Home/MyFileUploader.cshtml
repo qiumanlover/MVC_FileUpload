@@ -1,0 +1,33 @@
+﻿@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>MyFileUploader</title>
+    <script src="~/Scripts/myFileUpload.js"></script>
+</head>
+<body>
+    <div>
+        @using (Html.BeginForm("Upload", "Home", FormMethod.Post, new { enctype = "multipart/form-data", id = "form1" }))
+        {
+            <div class="row">
+                <label for="file">
+                    Upload Image:
+                </label>
+                <input type="file" name="fileToUpload" id="fileToUpload" multiple="multiple" onchange="fileSelected();" />
+            </div>
+            <div class="row">
+                <input type="button" onclick="uploadBigFilePiece()" value="Upload" />
+            </div>
+            <div id="progressNumber">
+            </div>
+            <div id="fileInfo">
+            </div>
+        }
+    </div>
+</body>
+</html>
