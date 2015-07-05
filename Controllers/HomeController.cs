@@ -82,10 +82,10 @@ namespace WebAppMVC.Controllers
             MyFileInfo fileinfo = new MyFileInfo();
             fileinfo.FileData = new List<byte>();
             fileinfo.FileName = jobject["filename"].ToString();
-            fileinfo.FileSize = Convert.ToInt32(jobject["filesize"].ToString());
+            fileinfo.FileSize = Convert.ToInt64(jobject["filesize"].ToString());
             Session.Add("fileinfo", fileinfo);
             //if (!System.IO.File.Exists("D:\\" + fileinfo.FileName))
-            //{
+            //{16955776997
             //    System.IO.File.Create("D:\\" + fileinfo.FileName);
             //}
             using (FileStream fs = new FileStream("D:\\" + fileinfo.FileName, FileMode.Create))
@@ -102,11 +102,11 @@ namespace WebAppMVC.Controllers
             byte[] buffer = new byte[Request.InputStream.Length];
             int count = Request.InputStream.Read(buffer, 0, buffer.Length);
             fileinfo.FileData.AddRange(buffer);
-            if (fileinfo.FileData.Count >= 1024 * 1024 * 10 || fileinfo.CurrentSize == fileinfo.FileSize)
+            if (fileinfo.FileData.Count >= 1024 * 1024 * 4 || (fileinfo.CurrentSize + buffer.Length) == fileinfo.FileSize)
             {
                 using (FileStream fs = new FileStream("D:\\" + fileinfo.FileName, FileMode.Append, FileAccess.Write))
                 {
-                    fs.Write(fileinfo.FileData.ToArray(), 0, count);
+                    fs.Write(fileinfo.FileData.ToArray(), 0, fileinfo.FileData.Count);
                 }
                 fileinfo.FileData.Clear();
             }

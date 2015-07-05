@@ -56,12 +56,11 @@ function uploadBigFilePiece() {
     xhr.onreadystatechange = function () {
         if (xhr.readyState == 4 && xhr.status == 200) {
             var index = xhr.response.index;
-            console.log(index);
+            console.log(index / 1024 /1024);
             if (index < file.size) {
                 var lastindex = index + 1024 * 1024;
                 lastindex = lastindex < file.size ? lastindex : file.size;
                 var blob = file.slice(index, lastindex);
-                console.log(blob);
                 xhr.open('post', '../Home/TransferData', true);
                 xhr.responseType = 'json';
                 xhr.send(blob);

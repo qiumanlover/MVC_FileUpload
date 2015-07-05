@@ -72,3 +72,12 @@ C:\Users\ZJZB_022\documents\visual studio 2013\Projects\WebAppTest\WebAppMVC\bin
 C:\Users\ZJZB_022\documents\visual studio 2013\Projects\WebAppTest\WebAppMVC\obj\Debug\WebAppMVC.csprojResolveAssemblyReference.cache
 C:\Users\ZJZB_022\documents\visual studio 2013\Projects\WebAppTest\WebAppMVC\obj\Debug\WebAppMVC.dll
 C:\Users\ZJZB_022\documents\visual studio 2013\Projects\WebAppTest\WebAppMVC\obj\Debug\WebAppMVC.pdb
+D:\Project\MVC_FileUpload\obj\Debug\WebAppMVC.dll
+D:\Project\MVC_FileUpload\obj\Debug\WebAppMVC.pdb
+D:\Project\MVC_FileUpload\bin\WebAppMVC.dll.config
+D:\Project\MVC_FileUpload\bin\WebAppMVC.dll
+D:\Project\MVC_FileUpload\bin\WebAppMVC.pdb
+D:\Project\MVC_FileUpload\bin\System.Web.Mvc.Fakes.fakesconfig
+D:\Project\MVC_FileUpload\bin\Microsoft.QualityTools.Testing.Fakes.dll
+D:\Project\MVC_FileUpload\bin\zh-Hans\Microsoft.QualityTools.Testing.Fakes.resources.dll
+D:\Project\MVC_FileUpload\obj\Debug\WebAppMVC.csprojFakesResolveAssemblyReference.cache

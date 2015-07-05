@@ -30,10 +30,10 @@ namespace WebAppMVC.Models
                 return this.FileName.Substring(this.FileName.LastIndexOf('.'));
             }
         }
-        public int FileSize { get; set; }
+        public long FileSize { get; set; }
         public string SavePath { get; set; }
 
         public List<byte> FileData { get; set; }
-        public int CurrentSize { get; set; }
+        public long CurrentSize { get; set; }
     }
 }
