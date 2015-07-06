@@ -102,17 +102,30 @@ namespace WebAppMVC.Controllers
             byte[] buffer = new byte[Request.InputStream.Length];
             int count = Request.InputStream.Read(buffer, 0, buffer.Length);
             fileinfo.FileData.AddRange(buffer);
-            if (fileinfo.FileData.Count >= 1024 * 1024 * 4 || (fileinfo.CurrentSize + buffer.Length) == fileinfo.FileSize)
+            if (fileinfo.FileData.Count >= 1024 * 1024 * 8 || (fileinfo.CurrentSize + buffer.Length) == fileinfo.FileSize)
             {
-                using (FileStream fs = new FileStream("D:\\" + fileinfo.FileName, FileMode.Append, FileAccess.Write))
-                {
-                    fs.Write(fileinfo.FileData.ToArray(), 0, fileinfo.FileData.Count);
-                }
+                WriteIOSync("D:\\" + fileinfo.FileName, fileinfo.FileData.ToArray());
                 fileinfo.FileData.Clear();
             }
             fileinfo.CurrentSize += buffer.Length;
             var obj = new JObject(new JProperty("index", fileinfo.CurrentSize));
             Response.Write(obj);
+        }
+
+        private async void WriteIOAsync(string filename, byte[] buffer)
+        {
+            using (FileStream fs = new FileStream(filename, FileMode.Append, FileAccess.Write))
+            {
+                await fs.WriteAsync(buffer, 0, buffer.Length);
+            }
+        }
+
+        private void WriteIOSync(string filename, byte[] buffer)
+        {
+            using (FileStream fs = new FileStream(filename, FileMode.Append, FileAccess.Write))
+            {
+                fs.Write(buffer, 0, buffer.Length);
+            }
         }
 
         public static byte[] charToByte(char c)
