@@ -185,6 +185,7 @@
     <Content Include="Scripts\bootstrap.js" />
     <Content Include="Scripts\bootstrap.min.js" />
     <Fakes Include="Fakes\System.Web.Mvc.fakes" />
+    <None Include="Properties\PublishProfiles\mvcUpload.pubxml" />
     <None Include="Scripts\jquery-1.10.2.intellisense.js" />
     <Content Include="Scripts\html5mvcfileupload.js" />
     <Content Include="Scripts\jquery-1.10.2.js" />

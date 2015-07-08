@@ -135,21 +135,33 @@ namespace WebAppMVC.Controllers
             return b;
         }
 
+        // 单文件，连续追加数据
         [HttpPost]
         public void UploadByPiece()
         {
-            int stepSize = 1024 * 1024;
-            JObject obj;
+            int stepSize = 1024 * 1024 * 1;
             string filePath = Path.Combine(defaultPath, Request["filename"].ToString());
             string tempPath = Path.Combine(defaultPath, string.Format("{0}_temp.data", Path.GetFileNameWithoutExtension(filePath)));
-            int fileSize = Convert.ToInt32(Request["filesize"]);
-            int nxtPiece = 0;
+            int pieceCount = Convert.ToInt32(Request["pieceCount"]);
+            int nxtPiece = 1;
+            // 首次上传
+            if (!System.IO.File.Exists(filePath) && !System.IO.File.Exists(tempPath))
+            {
+                using (FileStream tempStream = new FileStream(tempPath, FileMode.Create, FileAccess.Write))
+                {
+                    byte[] curPiece = System.Text.Encoding.UTF8.GetBytes("1");
+                    tempStream.Write(curPiece, 0, curPiece.Length);
+                }
+                using (FileStream fileStream = new FileStream(filePath, FileMode.Create, FileAccess.Write))
+                {
+                    fileStream.Flush();
+                }
+            }
             // 传输过程中
             if (System.IO.File.Exists(filePath) && System.IO.File.Exists(tempPath))
             {
                 byte[] dataBuffer = new byte[stepSize];
                 int dataCount = 0;
-                bool? isOK = null;
                 using (FileStream fs = new FileStream(tempPath, FileMode.Open, FileAccess.Read))
                 {
                     dataCount = fs.Read(dataBuffer, 0, dataBuffer.Length);
@@ -159,84 +171,56 @@ namespace WebAppMVC.Controllers
                 if (sendPiece == nxtPiece)
                 {
                     var data = Request.Files["data"];
+                    dataCount = data.InputStream.Read(dataBuffer, 0, dataBuffer.Length);
+                    data.InputStream.Close();
+                    // 对dataBuffer进行校验
                     using (FileStream fss = new FileStream(filePath, FileMode.Open, FileAccess.Write))
                     {// 在指定位置插入传输的数据
                         fss.Seek((sendPiece - 1) * stepSize, SeekOrigin.Begin);
-                        dataCount = data.InputStream.Read(dataBuffer, 0, dataBuffer.Length);
                         fss.Write(dataBuffer, 0, dataCount);
                         fss.Flush();
-                        isOK = fss.Length > fileSize ? false : (fss.Length == fileSize ? true : isOK);
                     }
-                    using (FileStream fsn = new FileStream(tempPath, FileMode.Open, FileAccess.Write))
-                    {// 更新文件片标志
-                        nxtPiece++;
-                        dataBuffer = System.Text.Encoding.UTF8.GetBytes(nxtPiece.ToString());
-                        fsn.Write(dataBuffer, 0, dataBuffer.Length);
-                    }
-                    if (isOK == false)
-                    {// 文件有脏数据， 清除脏数据
-                        byte[] buffer = new byte[fileSize];
-                        using (FileStream fse = new FileStream(filePath, FileMode.Open, FileAccess.Read))
-                        {
-                            fse.Read(buffer, 0, fileSize);
-                        }
-                        using (FileStream fsr = new FileStream(filePath, FileMode.Create, FileAccess.Write))
-                        {
-                            fsr.Write(buffer, 0, buffer.Length);
-                        }
-                    }
-                    if (isOK.HasValue)
+                    if (nxtPiece == pieceCount)
                     {
                         System.IO.File.Delete(tempPath);
-                    }
-                }
-                obj = new JObject(new JProperty("nxtPiece", nxtPiece));
-                Response.Write(obj);
-            }
-            else
-            {
-                byte[] curPiece;
-                FileStream tempStream, fileStream;
-                // 原文件已传输完或临时文件丢失
-                if (System.IO.File.Exists(filePath) && !System.IO.File.Exists(tempPath))
-                {
-                    System.IO.FileInfo file = new FileInfo(filePath);
-                    if (file.Length == fileSize)
-                    {
-                        nxtPiece = Convert.ToInt32(Math.Ceiling((double)((fileSize * 1.0) / (stepSize * 1.0)))) + 1;
-                        obj = new JObject(new JProperty("nxtPiece", nxtPiece));
-                        Response.Write(obj);
+                        nxtPiece++;
                     }
                     else
                     {
-                        using (tempStream = new FileStream(tempPath, FileMode.Create, FileAccess.Write))
-                        {
-                            curPiece = System.Text.Encoding.UTF8.GetBytes("1");
-                            tempStream.Write(curPiece, 0, curPiece.Length);
+                        using (FileStream fsn = new FileStream(tempPath, FileMode.Open, FileAccess.Write))
+                        {// 更新文件片标志
+                            dataBuffer = System.Text.Encoding.UTF8.GetBytes((++nxtPiece).ToString());
+                            fsn.Write(dataBuffer, 0, dataBuffer.Length);
                         }
-                        using (fileStream = new FileStream(filePath, FileMode.Create, FileAccess.Write))
-                        {
-                            fileStream.Flush();
-                        }
-                        obj = new JObject(new JProperty("nxtPiece", 1));
-                        Response.Write(obj);
                     }
+                }
+                dataBuffer = null;
+            }
+            else
+            {// 原文件已传输完或临时文件丢失
+                System.IO.FileInfo file = new FileInfo(filePath);
+                int filePieceCount = Convert.ToInt32(Math.Ceiling((double)((file.Length * 1.0) / (stepSize * 1.0))));
+                if (filePieceCount == pieceCount)
+                {
+                    nxtPiece = filePieceCount + 1;
                 }
                 else
                 {
-                    using (tempStream = new FileStream(tempPath, FileMode.Create, FileAccess.Write))
+                    using (FileStream tempStream = new FileStream(tempPath, FileMode.Create, FileAccess.Write))
                     {
-                        curPiece = System.Text.Encoding.UTF8.GetBytes("1");
+                        byte[] curPiece = System.Text.Encoding.UTF8.GetBytes("1");
                         tempStream.Write(curPiece, 0, curPiece.Length);
                     }
-                    using (fileStream = new FileStream(filePath, FileMode.Create, FileAccess.Write))
+                    using (FileStream fileStream = new FileStream(filePath, FileMode.Create, FileAccess.Write))
                     {
                         fileStream.Flush();
                     }
-                    obj = new JObject(new JProperty("nxtPiece", 1));
-                    Response.Write(obj);
                 }
             }
+            JObject obj = new JObject(new JProperty("nxtPiece", nxtPiece));
+            Response.Write(obj);
         }
+
+
     }
 }
