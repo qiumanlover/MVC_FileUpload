@@ -1,9 +1,7 @@
 ﻿using Newtonsoft.Json.Linq;
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Web;
 using System.Web.Mvc;
 using WebAppMVC.Models;
@@ -12,6 +10,7 @@ namespace WebAppMVC.Controllers
 {
     public class HomeController : Controller
     {
+        private readonly string defaultPath = "D:\\";
         public ActionResult Index()
         {
             return View();
@@ -134,6 +133,110 @@ namespace WebAppMVC.Controllers
             b[0] = (byte)((c & 0xFF00) >> 8);
             b[1] = (byte)(c & 0xFF);
             return b;
+        }
+
+        [HttpPost]
+        public void UploadByPiece()
+        {
+            int stepSize = 1024 * 1024;
+            JObject obj;
+            string filePath = Path.Combine(defaultPath, Request["filename"].ToString());
+            string tempPath = Path.Combine(defaultPath, string.Format("{0}_temp.data", Path.GetFileNameWithoutExtension(filePath)));
+            int fileSize = Convert.ToInt32(Request["filesize"]);
+            int nxtPiece = 0;
+            // 传输过程中
+            if (System.IO.File.Exists(filePath) && System.IO.File.Exists(tempPath))
+            {
+                byte[] dataBuffer = new byte[stepSize];
+                int dataCount = 0;
+                bool? isOK = null;
+                using (FileStream fs = new FileStream(tempPath, FileMode.Open, FileAccess.Read))
+                {
+                    dataCount = fs.Read(dataBuffer, 0, dataBuffer.Length);
+                    nxtPiece = Convert.ToInt32(System.Text.Encoding.UTF8.GetString(dataBuffer, 0, dataCount));
+                }
+                int sendPiece = Convert.ToInt32(Request["curPiece"]);
+                if (sendPiece == nxtPiece)
+                {
+                    var data = Request.Files["data"];
+                    using (FileStream fss = new FileStream(filePath, FileMode.Open, FileAccess.Write))
+                    {// 在指定位置插入传输的数据
+                        fss.Seek((sendPiece - 1) * stepSize, SeekOrigin.Begin);
+                        dataCount = data.InputStream.Read(dataBuffer, 0, dataBuffer.Length);
+                        fss.Write(dataBuffer, 0, dataCount);
+                        fss.Flush();
+                        isOK = fss.Length > fileSize ? false : (fss.Length == fileSize ? true : isOK);
+                    }
+                    using (FileStream fsn = new FileStream(tempPath, FileMode.Open, FileAccess.Write))
+                    {// 更新文件片标志
+                        nxtPiece++;
+                        dataBuffer = System.Text.Encoding.UTF8.GetBytes(nxtPiece.ToString());
+                        fsn.Write(dataBuffer, 0, dataBuffer.Length);
+                    }
+                    if (isOK == false)
+                    {// 文件有脏数据， 清除脏数据
+                        byte[] buffer = new byte[fileSize];
+                        using (FileStream fse = new FileStream(filePath, FileMode.Open, FileAccess.Read))
+                        {
+                            fse.Read(buffer, 0, fileSize);
+                        }
+                        using (FileStream fsr = new FileStream(filePath, FileMode.Create, FileAccess.Write))
+                        {
+                            fsr.Write(buffer, 0, buffer.Length);
+                        }
+                    }
+                    if (isOK.HasValue)
+                    {
+                        System.IO.File.Delete(tempPath);
+                    }
+                }
+                obj = new JObject(new JProperty("nxtPiece", nxtPiece));
+                Response.Write(obj);
+            }
+            else
+            {
+                byte[] curPiece;
+                FileStream tempStream, fileStream;
+                // 原文件已传输完或临时文件丢失
+                if (System.IO.File.Exists(filePath) && !System.IO.File.Exists(tempPath))
+                {
+                    System.IO.FileInfo file = new FileInfo(filePath);
+                    if (file.Length == fileSize)
+                    {
+                        nxtPiece = Convert.ToInt32(Math.Ceiling((double)((fileSize * 1.0) / (stepSize * 1.0)))) + 1;
+                        obj = new JObject(new JProperty("nxtPiece", nxtPiece));
+                        Response.Write(obj);
+                    }
+                    else
+                    {
+                        using (tempStream = new FileStream(tempPath, FileMode.Create, FileAccess.Write))
+                        {
+                            curPiece = System.Text.Encoding.UTF8.GetBytes("1");
+                            tempStream.Write(curPiece, 0, curPiece.Length);
+                        }
+                        using (fileStream = new FileStream(filePath, FileMode.Create, FileAccess.Write))
+                        {
+                            fileStream.Flush();
+                        }
+                        obj = new JObject(new JProperty("nxtPiece", 1));
+                        Response.Write(obj);
+                    }
+                }
+                else
+                {
+                    using (tempStream = new FileStream(tempPath, FileMode.Create, FileAccess.Write))
+                    {
+                        curPiece = System.Text.Encoding.UTF8.GetBytes("1");
+                        tempStream.Write(curPiece, 0, curPiece.Length);
+                    }
+                    using (fileStream = new FileStream(filePath, FileMode.Create, FileAccess.Write))
+                    {
+                        fileStream.Flush();
+                    }
+                    obj = new JObject(new JProperty("nxtPiece", 1));
+                    Response.Write(obj);
+                }
+            }
         }
     }
 }
