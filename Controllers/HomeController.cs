@@ -54,16 +54,15 @@ namespace WebAppMVC.Controllers
         }
 
         [HttpPost]
-        public ActionResult MyUpload()
+        public void MyUpload()
         {
             foreach (string filekey in Request.Files)
             {
                 HttpPostedFileBase file = Request.Files[filekey];
-                string path = System.IO.Path.Combine(Server.MapPath("~/App_Data"), System.IO.Path.GetFileName(file.FileName));
+                string path = System.IO.Path.Combine(defaultPath, System.IO.Path.GetFileName(file.FileName));
                 file.SaveAs(path);
             }
-            ViewBag.Message = "File(s) uploaded successfully";
-            return RedirectToAction("Index");
+            Response.Write("success");
         }
 
         public ActionResult MyFileUploader()
@@ -83,10 +82,6 @@ namespace WebAppMVC.Controllers
             fileinfo.FileName = jobject["filename"].ToString();
             fileinfo.FileSize = Convert.ToInt64(jobject["filesize"].ToString());
             Session.Add("fileinfo", fileinfo);
-            //if (!System.IO.File.Exists("D:\\" + fileinfo.FileName))
-            //{16955776997
-            //    System.IO.File.Create("D:\\" + fileinfo.FileName);
-            //}
             using (FileStream fs = new FileStream("D:\\" + fileinfo.FileName, FileMode.Create))
             {
                 fs.Flush();

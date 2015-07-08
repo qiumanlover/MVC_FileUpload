@@ -21,40 +21,20 @@ function fileSelected() {
     }
 }
 
-function uploadFileTogether() {
-    var files = document.getElementById('fileToUpload').files;
-    var fd = new FormData();
-    for (var i = 0; i < files.length; i++) {
-        fd.append(files[i].name, files[i]);
-    }
+function uploadWholeFile(file) {
+    var formdata = new FormData();
+    formdata.append(file.name, file);
     var xhr = new XMLHttpRequest();
+    xhr.open("POST", "../Home/MyUpload", true);
     xhr.onreadystatechange = function () {
         if (xhr.readyState == 4 && xhr.status == 200) {
-            var date = new Date();
-            console.log('file compelate: ' + date.getHours() + ':' + date.getMinutes() + ':' + date.getSeconds() + '.' + date.getMilliseconds());
+            console.log(xhr.responseText);
         }
     }
-    xhr.onloadstart = function (e) {
-        var date = new Date();
-        console.log('file start: ' + date.getHours() + ':' + date.getMinutes() + ':' + date.getSeconds() + '.' + date.getMilliseconds());
-    }
-    xhr.onerror = function (e) {
-        var date = new Date();
-        console.log('file upload error' + e.message + ' - ' + date.getHours() + ':' + date.getMinutes() + ':' + date.getSeconds() + '.' + date.getMilliseconds());
-    }
-    xhr.open("POST", "../Home/MyUpload", true);
-    xhr.send(fd);
+    xhr.send(formdata);
 }
 
-function uploadBigFileByBlob() {
-    var files = document.getElementById('fileToUpload').files;
-    if (!files.length) {
-        return false;
-    }
-    var file = files[0];
-    var filesize = file.size;
-    var pieceCount = Math.round(filesize / pieceSize);
-    var reader = new FileReader();
+function uploadFileByBlob(file) {
     var xhr = new XMLHttpRequest();
     xhr.onreadystatechange = function () {
         if (xhr.readyState == 4 && xhr.status == 200) {
@@ -77,15 +57,7 @@ function uploadBigFileByBlob() {
     console.log(file.size);
 }
 
-function uploadfiles() {
-    var files = $("#fileToUpload")[0].files;
-    for (var i = 0; i < files.length; i++) {
-        uploadBigFileByFormData(files[i]);
-    }
-
-}
-
-function uploadBigFileByFormData(file) {
+function uploadFileByFormData(file) {
     var pieceCount = Math.ceil(file.size / pieceSize);
     var xhr = new XMLHttpRequest();
     xhr.responseType = 'json';
@@ -94,7 +66,7 @@ function uploadBigFileByFormData(file) {
     formdata.append("filename", file.name);
     formdata.append("pieceCount", pieceCount);
     formdata.append("curPiece", index);
-    formdata.append("data", file.slice((index - 1) * pieceSize, index * pieceSize - 1));
+    formdata.append("data", file.slice((index - 1) * pieceSize, index * pieceSize));
     xhr.open('post', '../Home/UploadByPiece', true);
     xhr.onreadystatechange = function () {
         if (xhr.readyState == 4 && xhr.status == 200) {
@@ -107,11 +79,19 @@ function uploadBigFileByFormData(file) {
                 formdata.append("filename", file.name);
                 formdata.append("pieceCount", pieceCount);
                 formdata.append("curPiece", index);
-                formdata.append("data", file.slice((index - 1) * pieceSize, index * pieceSize - 1));
+                formdata.append("data", file.slice((index - 1) * pieceSize, index * pieceSize));
                 xhr.open('post', '../Home/UploadByPiece', true);
                 xhr.send(formdata);
             }
         }
     }
     xhr.send(formdata);
+}
+
+function uploadfiles() {
+    var files = $("#fileToUpload")[0].files;
+    for (var i = 0; i < files.length; i++) {
+        uploadFileByFormData(files[i]);
+    }
+
 }
