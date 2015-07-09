@@ -72,3 +72,4 @@ C:\Users\ZJZB_022\Documents\Visual Studio 2013\Projects\WebAppTest\WebAppMVC\bin
 C:\Users\ZJZB_022\Documents\Visual Studio 2013\Projects\WebAppTest\WebAppMVC\obj\Release\WebAppMVC.csprojFakesResolveAssemblyReference.cache
 C:\Users\ZJZB_022\Documents\Visual Studio 2013\Projects\WebAppTest\WebAppMVC\obj\Release\WebAppMVC.dll
 C:\Users\ZJZB_022\Documents\Visual Studio 2013\Projects\WebAppTest\WebAppMVC\obj\Release\WebAppMVC.pdb
+C:\Users\ZJZB_022\Documents\Visual Studio 2013\Projects\WebAppTest\WebAppMVC\obj\Release\WebAppMVC.csprojResolveAssemblyReference.cache

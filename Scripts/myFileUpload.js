@@ -88,10 +88,23 @@ function uploadFileByFormData(file) {
     xhr.send(formdata);
 }
 
+function uploadFileNode(file) {
+    var formdata = new FormData();
+    formdata.append(file.name, file);
+    var xhr = new XMLHttpRequest();
+    xhr.open("POST", "http://localhost:3000", true);
+    xhr.onreadystatechange = function () {
+        if (xhr.readyState == 4 && xhr.status == 200) {
+            console.log(xhr.responseText);
+        }
+    }
+    xhr.send(formdata);
+}
+
 function uploadfiles() {
     var files = $("#fileToUpload")[0].files;
     for (var i = 0; i < files.length; i++) {
-        uploadFileByFormData(files[i]);
+        uploadFileNode(files[i]);
     }
 
 }
