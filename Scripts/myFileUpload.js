@@ -1,4 +1,4 @@
-﻿var pieceSize = 1024 * 1024 * 1;
+var pieceSize = 1024 * 1024 * 1;
 
 
 function fileSelected() {
@@ -50,7 +50,10 @@ function uploadFileByBlob(file) {
             }
         }
     }
-    var fileinfo = { filename: file.name, filesize: file.size };
+    var fileinfo = {
+        filename: file.name,
+        filesize: file.size
+    };
     xhr.open('post', '../Home/SetFileInfo', true);
     xhr.responseType = 'json';
     xhr.send(JSON.stringify(fileinfo));
